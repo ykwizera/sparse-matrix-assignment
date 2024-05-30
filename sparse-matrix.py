@@ -102,8 +102,8 @@ def main():
         output_dir = "./sample_results/"
         os.makedirs(output_dir, exist_ok=True)
 
-        matrixA_path = os.path.join(input_dir, "matrixA.txt")
-        matrixB_path = os.path.join(input_dir, "matrixB.txt")
+        matrixA_path = os.path.join(input_dir, "matrix1.txt")
+        matrixB_path = os.path.join(input_dir, "matrix2.txt")
 
         matrixA = SparseMatrix(matrixA_path)
         matrixB = SparseMatrix(matrixB_path)
@@ -112,9 +112,9 @@ def main():
         diff_matrix = matrixA.subtract(matrixB)
         prod_matrix = matrixA.multiply(matrixB)
 
-        write_matrix_to_file(sum_matrix, os.path.join(output_dir, "sumMatrix.txt"))
-        write_matrix_to_file(diff_matrix, os.path.join(output_dir, "diffMatrix.txt"))
-        write_matrix_to_file(prod_matrix, os.path.join(output_dir, "prodMatrix.txt"))
+        write_matrix_to_file(sum_matrix, os.path.join(output_dir, "sum.txt"))
+        write_matrix_to_file(diff_matrix, os.path.join(output_dir, "difference.txt"))
+        write_matrix_to_file(prod_matrix, os.path.join(output_dir, "product.txt"))
         
     except Exception as e:
         print(e)
