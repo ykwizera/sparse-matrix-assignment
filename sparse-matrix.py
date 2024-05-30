@@ -2,157 +2,120 @@ import os
 import re
 
 class SparseMatrix:
-    def __init__(self, matrixFilePath=None, numRows=0, numCols=0):
-        self.numRows = numRows
-        self.numCols = numCols
-        self.elements = {}
-        
-        if matrixFilePath:
-            self.read_from_file(matrixFilePath)
+    def __init__(self, filePath=None, numRows=None, numCols=None):
+        if filePath:
+            self.read_from_file(filePath)
+        else:
+            self.numRows = numRows
+            self.numCols = numCols
+            self.elements = {}
+
+    def read_from_file(self, filePath):
+        with open(filePath, 'r') as file:
+            lines = file.readlines()
+            
+            if len(lines) < 2:
+                raise ValueError("Input file has wrong format")
+
+            self.numRows = int(lines[0].split('=')[1].strip())
+            self.numCols = int(lines[1].split('=')[1].strip())
+            self.elements = {}
+
+            for line in lines[2:]:
+                line = line.strip()
+                if line.startswith('(') and line.endswith(')'):
+                    elements = line[1:-1].split(',')
+                    if len(elements) != 3:
+                        raise ValueError("Input file has wrong format")
+                    row, col, value = map(int, elements)
+                    self.set_element(row, col, value)
+                else:
+                    raise ValueError("Input file has wrong format")
 
     def get_element(self, row, col):
         return self.elements.get((row, col), 0)
 
     def set_element(self, row, col, value):
-        if value != 0:
+        if value == 0:
+            if (row, col) in self.elements:
+                del self.elements[(row, col)]
+        else:
             self.elements[(row, col)] = value
-        elif (row, col) in self.elements:
-            del self.elements[(row, col)]
 
-    def read_from_file(self, matrixFilePath):
-        with open(matrixFilePath, 'r') as file:
-            lines = file.readlines()
-            
-            self.numRows = int(lines[0].split('=')[1].strip())
-            self.numCols = int(lines[1].split('=')[1].strip())
-            
-            for line in lines[2:]:
-                line = line.strip()
-                if not line:
-                    continue
-                
-                if not re.match(r'^\(\d+,\s*\d+,\s*-?\d+\)$', line):
-                    raise ValueError("Input file has wrong format")
-
-                line = line[1:-1]  # Remove parentheses
-                row, col, value = map(int, line.split(','))
-                self.set_element(row, col, value)
-
-    def __add__(self, other):
-        if self.numRows != other.numRows or self.numCols != other.numCols:
-            raise ValueError("Matrix dimensions do not match for addition")
+    def add(self, matrix):
+        if self.numRows != matrix.numRows or self.numCols != matrix.numCols:
+            raise ValueError("Matrix dimensions must match for addition")
 
         result = SparseMatrix(numRows=self.numRows, numCols=self.numCols)
+
         for (row, col), value in self.elements.items():
-            result.set_element(row, col, value)
-        for (row, col), value in other.elements.items():
-            result.set_element(row, col, result.get_element(row, col) + value)
+            result.set_element(row, col, value + matrix.get_element(row, col))
+
+        for (row, col), value in matrix.elements.items():
+            if (row, col) not in self.elements:
+                result.set_element(row, col, value)
+
         return result
 
-    def __sub__(self, other):
-        if self.numRows != other.numRows or self.numCols != other.numCols:
-            raise ValueError("Matrix dimensions do not match for subtraction")
+    def subtract(self, matrix):
+        if self.numRows != matrix.numRows or self.numCols != matrix.numCols:
+            raise ValueError("Matrix dimensions must match for subtraction")
 
         result = SparseMatrix(numRows=self.numRows, numCols=self.numCols)
+
         for (row, col), value in self.elements.items():
-            result.set_element(row, col, value)
-        for (row, col), value in other.elements.items():
-            result.set_element(row, col, result.get_element(row, col) - value)
+            result.set_element(row, col, value - matrix.get_element(row, col))
+
+        for (row, col), value in matrix.elements.items():
+            if (row, col) not in self.elements:
+                result.set_element(row, col, -value)
+
         return result
 
-    def __mul__(self, other):
-        if self.numCols != other.numRows:
-            raise ValueError("Matrix dimensions do not match for multiplication")
+    def multiply(self, matrix):
+        if self.numCols != matrix.numRows:
+            raise ValueError("Matrix dimensions must match for multiplication")
 
-        result = SparseMatrix(numRows=self.numRows, numCols=other.numCols)
-        for (row1, col1), value1 in self.elements.items():
-            for (row2, col2), value2 in other.elements.items():
-                if col1 == row2:
-                    result.set_element(row1, col2, result.get_element(row1, col2) + value1 * value2)
+        result = SparseMatrix(numRows=self.numRows, numCols=matrix.numCols)
+
+        for (rowA, colA), valueA in self.elements.items():
+            for colB in range(matrix.numCols):
+                valueB = matrix.get_element(colA, colB)
+                if valueB != 0:
+                    result.set_element(rowA, colB, result.get_element(rowA, colB) + valueA * valueB)
+
         return result
 
-    def print(self):
+    def __str__(self):
+        result = f"rows={self.numRows}\ncols={self.numCols}\n"
         for (row, col), value in self.elements.items():
-            print(f"({row}, {col}, {value})")
+            result += f"({row}, {col}, {value})\n"
+        return result
 
-# def main():
-#     try:
-#         base_dir = "/sample_inputs/"
-#         matrix1_path = os.path.join(base_dir, "easy_sample_01_1.txt")
-#         matrix2_path = os.path.join(base_dir, "easy_sample_01_2.txt")
-
-#         mat1 = SparseMatrix(matrix1_path)
-#         mat2 = SparseMatrix(matrix2_path)
-
-#         print("Matrix 1:")
-#         mat1.print()
-#         print("\nMatrix 2:")
-#         mat2.print()
-
-#         print("\nSum:")
-#         sum_matrix = mat1 + mat2
-#         sum_matrix.print()
-
-#         print("\nDifference:")
-#         diff_matrix = mat1 - mat2
-#         diff_matrix.print()
-
-#         print("\nProduct:")
-#         product_matrix = mat1 * mat2
-#         product_matrix.print()
-
-#     except Exception as e:
-#         print(e)
-
-# if __name__ == "__main__":
-#     main()
+def write_matrix_to_file(matrix, filePath):
+    with open(filePath, 'w') as file:
+        file.write(str(matrix))
 
 def main():
     try:
-        base_dir = "/sample_inputs/"
-        results_dir = "/results/"
-        if not os.path.exists(results_dir):
-            os.makedirs(results_dir)
+        input_dir = "./sample_inputs/"
+        output_dir = "./sample_results/"
+        os.makedirs(output_dir, exist_ok=True)
 
-        matrix1_path = os.path.join(base_dir, "easy_sample_01_1.txt")
-        matrix2_path = os.path.join(base_dir, "easy_sample_01_2.txt")
+        matrixA_path = os.path.join(input_dir, "matrixA.txt")
+        matrixB_path = os.path.join(input_dir, "matrixB.txt")
 
-        mat1 = SparseMatrix(matrix1_path)
-        mat2 = SparseMatrix(matrix2_path)
+        matrixA = SparseMatrix(matrixA_path)
+        matrixB = SparseMatrix(matrixB_path)
 
-        print("Matrix 1:")
-        with open(os.path.join(results_dir, "matrix1.txt"), "w") as f:
-            for (row, col), value in mat1.elements.items():
-                f.write(f"({row}, {col}, {value})\n")
-        mat1.print()
+        sum_matrix = matrixA.add(matrixB)
+        diff_matrix = matrixA.subtract(matrixB)
+        prod_matrix = matrixA.multiply(matrixB)
 
-        print("\nMatrix 2:")
-        with open(os.path.join(results_dir, "matrix2.txt"), "w") as f:
-            for (row, col), value in mat2.elements.items():
-                f.write(f"({row}, {col}, {value})\n")
-        mat2.print()
-
-        print("\nSum:")
-        sum_matrix = mat1 + mat2
-        with open(os.path.join(results_dir, "sum.txt"), "w") as f:
-            for (row, col), value in sum_matrix.elements.items():
-                f.write(f"({row}, {col}, {value})\n")
-        sum_matrix.print()
-
-        print("\nDifference:")
-        diff_matrix = mat1 - mat2
-        with open(os.path.join(results_dir, "diff.txt"), "w") as f:
-            for (row, col), value in diff_matrix.elements.items():
-                f.write(f"({row}, {col}, {value})\n")
-        diff_matrix.print()
-
-        print("\nProduct:")
-        product_matrix = mat1 * mat2
-        with open(os.path.join(results_dir, "product.txt"), "w") as f:
-            for (row, col), value in product_matrix.elements.items():
-                f.write(f"({row}, {col}, {value})\n")
-        product_matrix.print()
-
+        write_matrix_to_file(sum_matrix, os.path.join(output_dir, "sumMatrix.txt"))
+        write_matrix_to_file(diff_matrix, os.path.join(output_dir, "diffMatrix.txt"))
+        write_matrix_to_file(prod_matrix, os.path.join(output_dir, "prodMatrix.txt"))
+        
     except Exception as e:
         print(e)
 
