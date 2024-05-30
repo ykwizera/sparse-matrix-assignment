@@ -75,9 +75,45 @@ class SparseMatrix:
         for (row, col), value in self.elements.items():
             print(f"({row}, {col}, {value})")
 
+# def main():
+#     try:
+#         base_dir = "/sample_inputs/"
+#         matrix1_path = os.path.join(base_dir, "easy_sample_01_1.txt")
+#         matrix2_path = os.path.join(base_dir, "easy_sample_01_2.txt")
+
+#         mat1 = SparseMatrix(matrix1_path)
+#         mat2 = SparseMatrix(matrix2_path)
+
+#         print("Matrix 1:")
+#         mat1.print()
+#         print("\nMatrix 2:")
+#         mat2.print()
+
+#         print("\nSum:")
+#         sum_matrix = mat1 + mat2
+#         sum_matrix.print()
+
+#         print("\nDifference:")
+#         diff_matrix = mat1 - mat2
+#         diff_matrix.print()
+
+#         print("\nProduct:")
+#         product_matrix = mat1 * mat2
+#         product_matrix.print()
+
+#     except Exception as e:
+#         print(e)
+
+# if __name__ == "__main__":
+#     main()
+
 def main():
     try:
         base_dir = "/sample_inputs/"
+        results_dir = "/results/"
+        if not os.path.exists(results_dir):
+            os.makedirs(results_dir)
+
         matrix1_path = os.path.join(base_dir, "easy_sample_01_1.txt")
         matrix2_path = os.path.join(base_dir, "easy_sample_01_2.txt")
 
@@ -85,20 +121,36 @@ def main():
         mat2 = SparseMatrix(matrix2_path)
 
         print("Matrix 1:")
+        with open(os.path.join(results_dir, "matrix1.txt"), "w") as f:
+            for (row, col), value in mat1.elements.items():
+                f.write(f"({row}, {col}, {value})\n")
         mat1.print()
+
         print("\nMatrix 2:")
+        with open(os.path.join(results_dir, "matrix2.txt"), "w") as f:
+            for (row, col), value in mat2.elements.items():
+                f.write(f"({row}, {col}, {value})\n")
         mat2.print()
 
         print("\nSum:")
         sum_matrix = mat1 + mat2
+        with open(os.path.join(results_dir, "sum.txt"), "w") as f:
+            for (row, col), value in sum_matrix.elements.items():
+                f.write(f"({row}, {col}, {value})\n")
         sum_matrix.print()
 
         print("\nDifference:")
         diff_matrix = mat1 - mat2
+        with open(os.path.join(results_dir, "diff.txt"), "w") as f:
+            for (row, col), value in diff_matrix.elements.items():
+                f.write(f"({row}, {col}, {value})\n")
         diff_matrix.print()
 
         print("\nProduct:")
         product_matrix = mat1 * mat2
+        with open(os.path.join(results_dir, "product.txt"), "w") as f:
+            for (row, col), value in product_matrix.elements.items():
+                f.write(f"({row}, {col}, {value})\n")
         product_matrix.print()
 
     except Exception as e:
