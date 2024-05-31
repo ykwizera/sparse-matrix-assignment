@@ -71,10 +71,6 @@ class SparseMatrix:
                     result.set_element(row1, col2, result.get_element(row1, col2) + value1 * value2)
         return result
 
-    def print(self):
-        for (row, col), value in self.elements.items():
-            print(f"({row}, {col}, {value})")
-
     def save_to_file(self, filePath):
         with open(filePath, 'w') as file:
             file.write(f"numRows={self.numRows}\n")
@@ -94,24 +90,13 @@ def main():
         mat1 = SparseMatrix(matrix1_path)
         mat2 = SparseMatrix(matrix2_path)
 
-        print("Matrix 1:")
-        mat1.print()
-        print("\nMatrix 2:")
-        mat2.print()
-
-        print("\nSum:")
         sum_matrix = mat1 + mat2
-        sum_matrix.print()
         sum_matrix.save_to_file(os.path.join(results_dir, "sum.txt"))
 
-        print("\nDifference:")
         diff_matrix = mat1 - mat2
-        diff_matrix.print()
         diff_matrix.save_to_file(os.path.join(results_dir, "difference.txt"))
 
-        print("\nProduct:")
         product_matrix = mat1 * mat2
-        product_matrix.print()
         product_matrix.save_to_file(os.path.join(results_dir, "product.txt"))
 
     except Exception as e:
